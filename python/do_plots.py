@@ -7,6 +7,7 @@ import os
 import os.path
 import ntpath
 import importlib
+import importlib.util
 import copy
 import re
 import logging
@@ -968,7 +969,11 @@ def run(args):
 
     # Load plot script as module
     sys.path.insert(0, module_dir)
-    script_module = importlib.import_module(base_name)
+    script_spec = importlib.util.spec_from_file_location(base_name,
+                                                         module_path)
+    script_module = importlib.util.module_from_spec(script_spec)
+    script_module.cmdline_args = {'unknown': args.unknown}
+    script_spec.loader.exec_module(script_module)
 
     # Merge script and command line arguments into one configuration object
     # Also check the script attributes
@@ -1198,7 +1203,8 @@ def do_plots(parser):
     Run plots generation
     '''
 
-    args, _ = parser.parse_known_args()
+    args, unknown_args = parser.parse_known_args()
+    args.unknown = unknown_args
 
     if args.command != 'plots':
         LOGGER.error('Wrong sub-command!\nAborting...')

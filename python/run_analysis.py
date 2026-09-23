@@ -102,7 +102,8 @@ def create_subjob_script(local_dir: str,
                          process_name: str,
                          chunk_num: int,
                          chunk_list: list[list[str]],
-                         anapath: str) -> str:
+                         anapath: str,
+                         cmd_args) -> str:
     '''
     Creates sub-job script to be run.
     '''
@@ -136,7 +137,10 @@ def create_subjob_script(local_dir: str,
                                    f'chunk_{chunk_num}.root')
 
     scr += local_dir
-    scr += f'/bin/fccanalysis run {anapath} --batch '
+    scr += f'/bin/fccanalysis run {anapath} --batch'
+    if len(cmd_args.unknown) > 0:
+        scr += ' ' + ' '.join(cmd_args.unknown)
+    scr += ' '
     scr += f'--output {output_path} '
     scr += '--files-list'
     for file_path in chunk_list[chunk_num]:
@@ -360,7 +364,7 @@ def run_rdf(rdf_module,
 
 
 # _____________________________________________________________________________
-def send_to_batch(rdf_module, chunk_list, process, anapath: str):
+def send_to_batch(rdf_module, chunk_list, process, anapath: str, args):
     '''
     Send jobs to HTCondor batch system.
     '''
@@ -396,7 +400,8 @@ def send_to_batch(rdf_module, chunk_list, process, anapath: str):
                                                          process,
                                                          ch,
                                                          chunk_list,
-                                                         anapath)
+                                                         anapath,
+                                                         args)
                     ofile.write(subjob_script)
             except IOError as e:
                 if i < 2:
@@ -689,7 +694,7 @@ def run_stages(args, rdf_module, anapath):
                 LOGGER.warning('\033[4m\033[1m\033[91mRunning on batch with '
                                'only one chunk might not be optimal\033[0m')
 
-            send_to_batch(rdf_module, chunk_list, process_name, anapath)
+            send_to_batch(rdf_module, chunk_list, process_name, anapath, args)
 
         else:
             # Running locally
@@ -953,6 +958,7 @@ def run(parser):
     rdf_spec = importlib.util.spec_from_file_location("fcc_analysis_module",
                                                       anapath)
     rdf_module = importlib.util.module_from_spec(rdf_spec)
+    rdf_module.cmdline_args = {'unknown': args.unknown}
     rdf_spec.loader.exec_module(rdf_module)
 
     # Merge configuration from analysis script file with command line arguments

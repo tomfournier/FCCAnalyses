@@ -735,7 +735,8 @@ def run_final(parser):
     Run final stage of the analysis.
     '''
 
-    args, _ = parser.parse_known_args()
+    args, unknown_args = parser.parse_known_args()
+    args.unknown = unknown_args
 
     if args.command != 'final':
         LOGGER.error('Unknown sub-command "%s"!\nAborting...', args.command)
@@ -784,6 +785,7 @@ def run_final(parser):
     rdf_spec = importlib.util.spec_from_file_location('rdfanalysis',
                                                       anapath_abs)
     rdf_module = importlib.util.module_from_spec(rdf_spec)
+    rdf_module.cmdline_args = {'unknown': args.unknown}
     rdf_spec.loader.exec_module(rdf_module)
 
     # Merge configuration from analysis script file with command line arguments
