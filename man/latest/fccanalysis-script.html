@@ -23,12 +23,15 @@
 <h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
 <p class="Pp"><b>fccanalysis-script</b> &#x2013; analysis steering script
     specification</p>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
 <dl class="Bl-tag">
   <dt></dt>
-  <dd>*</dd>
+  <dd>*
+    <p class="Pp"></p>
+  </dd>
 </dl>
 </section>
 <section class="Sh">
@@ -47,18 +50,20 @@
     <p class="Pp"></p>
   </dd>
 </dl>
-<p class="Pp">where user needs to provide minimal number of variables and
-    settings. In this mode the RDataFrame is managed for the user and it can be
-    controlled by defining several global attributes in the analysis script. The
-    other mode is to run the analysis script as a regular python script:</p>
+<p class="Pp">where user needs to provide a set of required attributes and
+    definitions in their analysis script. In this mode the RDataFrame is managed
+    for the user and the analysis behavior can be controlled by providing
+    additional attributes in the analysis script. The other mode is to run the
+    analysis script as a regular python script:</p>
 <dl class="Bl-tag">
   <dt></dt>
   <dd>python <i>analysis_script.py</i></dd>
 </dl>
 <p class="Pp">here user has full control over the RDataFrame, but has to create
     all necessary scaffolding.</p>
-<p class="Pp">It is expected that the whole analysis will be split into several
-    stages and it can be done in one of the two styles:</p>
+<p class="Pp"></p>
+<p class="Pp">Usually it is the case that the whole analysis will be split into
+    several stages, which can be done in one of the two styles:</p>
 <dl class="Bl-tag">
   <dt></dt>
   <dd>anascript_stage1.py -&gt; anascript_stage2.py -&gt; ... -&gt;
@@ -72,43 +77,52 @@
   </dd>
 </dl>
 <p class="Pp">In the case of the first style there are at least three stages
-    required (anascript_stage1.py, anascript_stage_final.py, plots.py) and there
-    is no upper limit on the number of stages. In the case of the second style
-    only two stages are required. The first style is named &quot;staged
-    analysis&quot; and the second &quot;histmaker analysis&quot;.</p>
+    required (e.g. <i>anascript_stage1.py</i>, <i>anascript_stage_final.py</i>,
+    <i>plots.py</i>) and there is no upper limit on the number of stages. In the
+    case of the second style only two stages are required. The first style is
+    named &quot;staged style&quot; and the second &quot;histmaker
+  style&quot;.</p>
 <dl class="Bl-tag">
-  <dt id="staged"><a class="permalink" href="#staged"><b>staged
+  <dt id="Staged"><a class="permalink" href="#Staged"><b>Staged style
     analysis</b></a></dt>
-  <dd>The analysis script needs to contain <i>RDFanalysis</i> class of the
+  <dd>The analysis script needs to contain <i>Analysis</i> class of the
       following structure:</dd>
 </dl>
 <dl class="Bl-tag">
   <dt></dt>
-  <dd>class RDFanalysis():
+  <dd>class Analysis():
     <br/>
-     def analysers(df):
-    <br/>
-     df2 = (
-    <br/>
-     df
-    <br/>
-     # define the muon collection
-    <br/>
-     .Define(&quot;muons&quot;, &quot;ReconstructedParticle::get(Muon0,
-      ReconstructedParticles)&quot;)
+     def __init__(self, cmdline_args):
     <br/>
      ...
-    <br/>
-     )
-    <br/>
-     return df2
-    <br/>
-     def output():
-    <br/>
-     return [&quot;muons&quot;, &quot;muon_mass&quot;]</dd>
+    <p class="Pp">
+      <br/>
+       def analyzers(self, dframe):
+      <br/>
+       dframe2 = (
+      <br/>
+       dframe
+      <br/>
+       # define the muon collection
+      <br/>
+       .Define(&quot;muons&quot;,
+      <br/>
+       &quot;ReconstructedParticle::get(Muon0, ReconstructedParticles)&quot;)
+      <br/>
+       ...
+      <br/>
+       )
+      <br/>
+       return dframe2</p>
+    <p class="Pp">
+      <br/>
+       def output(self):
+      <br/>
+       return [&quot;muons&quot;, &quot;muon_mass&quot;]</p>
+  </dd>
 </dl>
 <dl class="Bl-tag">
-  <dt id="histmaker"><a class="permalink" href="#histmaker"><b>histmaker
+  <dt id="Histmaker"><a class="permalink" href="#Histmaker"><b>Histmaker style
     analysis</b></a></dt>
   <dd>The analysis script needs to contain <i>build_graph</i> function of the
       following structure:</dd>
@@ -134,22 +148,28 @@
      return results, weightsum</dd>
 </dl>
 <dl class="Bl-tag">
-  <dt id="plots"><a class="permalink" href="#plots"><b>plots script</b></a></dt>
-  <dd>This stage does not require neither <i>RDFanalysis</i> class neither
-      <i>build_graph</i> function, it has it's own set of attributes, please see
-      the examples in the <i>examples</i> directory.</dd>
+  <dt id="Final"><a class="permalink" href="#Final"><b>Final and Plots
+    stages</b></a></dt>
+  <dd>These stages do not require <i>Analysis</i> class neither
+      <i>build_graph</i> function, they have their own set of attributes, please
+      see the examples in the <i>examples</i> of FCCAnalyses repository or
+      fccanalysis-final-script(7) and fccanalysis-plots-script(7) manual pages.
+    <p class="Pp"></p>
+  </dd>
 </dl>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
-<p class="Pp">In case of running the FCCAnalysis in the managed mode user can
-    use the following global attributes to control the behavior of the
-  analysis.</p>
+<p class="Pp">In case of running the FCCAnalysis in the staged style user
+    can/should add the following attributes to the <i>Analysis</i> class in
+    order to control the behavior of the analysis.</p>
 <dl class="Bl-tag">
-  <dt id="processList"><a class="permalink" href="#processList"><b>processList</b>
+  <dt id="process_list"><a class="permalink" href="#process_list"><b>process_list</b>
     (mandatory)</a></dt>
   <dd>Dictionary of process samples to be run over. Each process can have
-      several parameters: <i>fraction</i>
+      several parameters:
+    <br/>
+    <i>fraction</i>
     <br/>
     The analysis will run over reduced number of input files roughly
       corresponding to the fraction of total events specified.
@@ -159,7 +179,7 @@
     <i>input_dir</i>
     <br/>
     Specifies the location of the process different from the globally set one.
-      This overrides both prodTag and inputDir attributes of the analysis
+      This overrides both prod_tag and input_dir attributes of the analysis
       script.
     <br/>
     Default value: None
@@ -174,58 +194,81 @@
     <br/>
     <i>chunks</i>
     <br/>
-    The analysis RDataFrame can be split into several chunks.
+    The analysis can be split into several output chunks (useful on distributed
+      systems).
     <br/>
-    Default value: 1</dd>
-  <dt id="prodTag"><a class="permalink" href="#prodTag"><b>prodTag</b>
+    Default value: 1
+    <br/>
+    <i>stride</i>
+    <br/>
+    Specifies how to stride through the events of the sample.
+    <br/>
+    Default value: None (no striding)
+    <br/>
+    <i>n-events-max</i>
+    <br/>
+    Limits the maximum number of events to process for the sample.
+    <br/>
+    Default value: None (no limit)</dd>
+  <dt id="prod_tag"><a class="permalink" href="#prod_tag"><b>prod_tag</b>
     (mandatory)</a></dt>
   <dd>Provides information where to find input files. There are several way how
       to find the information, one of them uses YAML file which is being
-      searched for in the subfolders of $FCCDICTSDIR.</dd>
-  <dt id="outputDir"><a class="permalink" href="#outputDir"><b>outputDir</b>
+      searched for in the sub-folders of $FCCDICTSDIR.</dd>
+  <dt id="output_dir"><a class="permalink" href="#output_dir"><b>output_dir</b>
     (mandatory)</a></dt>
-  <dd>User can specify the directory for the output files. The output directory
-      can be overwriten by specifiing absolute path with `--output` commandline
-      argument.</dd>
-  <dt id="analysisName"><a class="permalink" href="#analysisName"><b>analysisName</b>
+  <dd>User can specify the directory for the output files.</dd>
+  <dt id="output_format"><a class="permalink" href="#output_format"><b>output_format</b>
+    (optional)</a></dt>
+  <dd>Specifies the output ROOT file format. Accepted values are <b>ttree</b>
+      and <b>rntuple</b>.
+    <br/>
+    Default value: ttree</dd>
+  <dt id="analysis_name"><a class="permalink" href="#analysis_name"><b>analysis_name</b>
     (optional)</a></dt>
   <dd>Optional name for the analysis
     <br/>
     Default value: empty string</dd>
-  <dt id="nCPUS"><a class="permalink" href="#nCPUS"><b>nCPUS</b>
+  <dt id="n_threads"><a class="permalink" href="#n_threads"><b>n_threads</b>
     (optional)</a></dt>
-  <dd>Number of threads the RDataFrame will use.
+  <dd>Number of threads the RDataFrame will use during processing. To use all
+      threads available on the machine specify -1.
     <br/>
-    Default value: 4</dd>
-  <dt id="runBatch"><a class="permalink" href="#runBatch"><b>runBatch</b>
+    Default value: 1</dd>
+  <dt id="inlude_paths"><a class="permalink" href="#inlude_paths"><b>inlude_paths</b>
     (optional)</a></dt>
-  <dd>Run the analysis on the HTCondor batch system.
+  <dd>Specify additional include header files to be JIT compiled.
     <br/>
-    Default value: False</dd>
-  <dt id="batchQueue"><a class="permalink" href="#batchQueue"><b>batchQueue</b>
+    Default value: None</dd>
+  <dt id="batch_queue"><a class="permalink" href="#batch_queue"><b>batch_queue</b>
     (optional)</a></dt>
   <dd>Batch queue name when running on HTCondor.
     <br/>
     Default value: &quot;longlunch&quot;</dd>
-  <dt id="compGroup"><a class="permalink" href="#compGroup"><b>compGroup</b>
+  <dt id="comp_group"><a class="permalink" href="#comp_group"><b>comp_group</b>
     (optional)</a></dt>
   <dd>Computing account when running on HTCondor.
     <br/>
     Default value: &quot;group_u_FCC.local_gen&quot;</dd>
-  <dt id="outputDirEos"><a class="permalink" href="#outputDirEos"><b>outputDirEos</b>
+  <dt id="output_dir_eos"><a class="permalink" href="#output_dir_eos"><b>output_dir_eos</b>
     (optional)</a></dt>
-  <dd>Output directory on EOS, if specified files will be copied there once the
-      batch job is done.
+  <dd>Output directory on EOS, recognized only when submitting to HTCondor. If
+      specified files will be copied there once the batch job is done. A string
+      (<b>str</b>) or a template (<b>string.Template</b>) can be provided. In
+      case of the template only one variable is currently supported:
+      <b>$timestamp</b>.
     <br/>
-    Default value: empty string</dd>
-  <dt id="eosType"><a class="permalink" href="#eosType"><b>eosType</b>
-    (mandatory if <i>outputDirEos</i> is used)</a></dt>
+    Default value: None</dd>
+  <dt id="eos_type"><a class="permalink" href="#eos_type"><b>eos_type</b>
+    (optional)</a></dt>
   <dd>Type of the EOS proxy to be used.
     <br/>
-    Default value: empty string</dd>
-  <dt id="testFile"><a class="permalink" href="#testFile"><b>testFile</b>
+    Default value: user</dd>
+  <dt id="test_file"><a class="permalink" href="#test_file"><b>test_file</b>
     (optional)</a></dt>
-  <dd>Location of the test file.
+  <dd>Location of the test file provided as a string (<b>str</b>) or a template
+      (<b>string.Template</b>). In case of the template two variables are
+      supported: <b>$key4hep_os</b> and <b>$key4hep_stack</b>.
     <br/>
     Default value: empty string</dd>
   <dt id="graph"><a class="permalink" href="#graph"><b>graph</b>
@@ -233,13 +276,13 @@
   <dd>The computational graph of the analysis will be generated.
     <br/>
     Default value: False</dd>
-  <dt id="graphPath"><a class="permalink" href="#graphPath"><b>graphPath</b>
+  <dt id="graph_path"><a class="permalink" href="#graph_path"><b>graph_path</b>
     (optional)</a></dt>
   <dd>Location where the computational graph of the analysis should be stored.
       Only paths with <i>.dot</i> and <i>.png</i> extensions are accepted.
     <br/>
     Default value: empty string</dd>
-  <dt id="useDataSource"><a class="permalink" href="#useDataSource"><b>useDataSource</b>
+  <dt id="use_data_source"><a class="permalink" href="#use_data_source"><b>use_data_source</b>
     (optional)</a></dt>
   <dd>User can specify how to provide physical object collections to the
       analyzers. If <i>True</i> the events will be loaded through the EDM4hep
@@ -253,23 +296,29 @@
       calculated with sum of weights accordingly.
     <br/>
     Default value: False</dd>
-  <dt id="procDict"><a class="permalink" href="#procDict"><b>procDict</b></a></dt>
+  <dt id="proc_dict"><a class="permalink" href="#proc_dict"><b>proc_dict</b></a></dt>
   <dd>This variable controls which process dictionary will be used. It can be
       either simple file name, absolute path or url. In the case of simple
       filename, the file is being searched for first in the working directory
       and then at the locations indicated in the $FCCDICTSDIR environment
       variable.</dd>
+  <dt id="n_events_max"><a class="permalink" href="#n_events_max"><b>n_events_max</b></a></dt>
+  <dd>Allows to limit the amount of events to be processed. The limit is applied
+      per sample.</dd>
 </dl>
 <p class="Pp">This section is under construction. You are invited to help :)</p>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
   ALSO</a></h1>
 <p class="Pp">fccanalysis(1), fccanalysis-run(1)</p>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
 <p class="Pp">Many</p>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="AUTHORS"><a class="permalink" href="#AUTHORS">AUTHORS</a></h1>
@@ -281,19 +330,22 @@
   Valentin Volkl
   <br/>
   Gerardo Ganis</p>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="FCCANALYSES"><a class="permalink" href="#FCCANALYSES">FCCANALYSES</a></h1>
 <p class="Pp">Part of the FCCAnalyses framework.</p>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="LINKS"><a class="permalink" href="#LINKS">LINKS</a></h1>
 <p class="Pp"><a class="Lk" href="https://hep-fcc.github.io/FCCAnalyses/">FCCAnalyses
     webpage</a></p>
-<p class="Pp"><a class="Lk" href="https://github.com/HEP-FCC/FCCAnalyses/">FCCAnalysises
+<p class="Pp"><a class="Lk" href="https://github.com/HEP-FCC/FCCAnalyses/">FCCAnalyses
     GitHub repository</a></p>
 <p class="Pp"><a class="Lk" href="https://fccsw-forum.web.cern.ch/">FCCSW
     Forum</a></p>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="CONTACT"><a class="permalink" href="#CONTACT">CONTACT</a></h1>
@@ -302,8 +354,8 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">17 Jan 2024</td>
-    <td class="foot-os">0.10.0</td>
+    <td class="foot-date">12 Nov 2025</td>
+    <td class="foot-os">0.13.1</td>
   </tr>
 </table>
 </body>
